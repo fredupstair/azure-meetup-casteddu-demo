@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "azure-meetup-casteddu-demo-client-side-solution",
+    "id": "58ed4763-322b-4895-b9db-e98b8e8cd696",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.21.1"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "azure-meetup-casteddu-demo description"
+      },
+      "longDescription": {
+        "default": "azure-meetup-casteddu-demo description"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "azure-meetup-casteddu-demo Feature",
+        "description": "The feature that activates elements of the azure-meetup-casteddu-demo solution.",
+        "id": "1e6d4211-034a-4e79-bdd2-b5ae081a99a2",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/azure-meetup-casteddu-demo.sppkg"
+  }
+}

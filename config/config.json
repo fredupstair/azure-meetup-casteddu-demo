@@ -1,0 +1,18 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "my-productivity-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/myProductivity/MyProductivityWebPart.js",
+          "manifest": "./src/webparts/myProductivity/MyProductivityWebPart.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {
+    "MyProductivityWebPartStrings": "lib/webparts/myProductivity/loc/{locale}.js"
+  }
+}
