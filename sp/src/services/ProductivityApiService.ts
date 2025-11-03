@@ -1,0 +1,84 @@
+import { AadHttpClient, HttpClientResponse } from '@microsoft/sp-http';
+import { WebPartContext } from '@microsoft/sp-webpart-base';
+
+export interface IProductionStats {
+  date: string;
+  totalPiecesProduced: number;
+  averageProductionSpeed: number;
+  efficiency: number;
+  lastUpdated: string;
+}
+
+export interface IProductionItem {
+  itemCode: string;
+  productName: string;
+  quantity: number;
+  productionDate: string;
+  status: string;
+}
+
+export interface ICustomer {
+  customerCode: string;
+  customerName: string;
+  lastOrderDate: string;
+  totalOrders: number;
+  location: string;
+}
+
+export class ProductivityApiService {
+  private aadHttpClient: AadHttpClient | null = null;
+
+  constructor(
+    private apiBaseUrl: string,
+    private resourceUri: string
+  ) {}
+
+  private async ensureClient(context: WebPartContext): Promise<AadHttpClient> {
+    if (!this.aadHttpClient) {
+      this.aadHttpClient = await context.aadHttpClientFactory.getClient(this.resourceUri);
+    }
+    return this.aadHttpClient;
+  }
+
+  public async getProductionStats(context: WebPartContext): Promise<IProductionStats> {
+    const client = await this.ensureClient(context);
+    const response: HttpClientResponse = await client.get(
+      `${this.apiBaseUrl}/stats`,
+      AadHttpClient.configurations.v1
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to get production stats: ${response.statusText}`);
+    }
+
+    return await response.json();
+  }
+
+  public async getProductionItems(context: WebPartContext): Promise<IProductionItem[]> {
+    const client = await this.ensureClient(context);
+    const response: HttpClientResponse = await client.get(
+      `${this.apiBaseUrl}/items`,
+      AadHttpClient.configurations.v1
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to get production items: ${response.statusText}`);
+    }
+
+    return await response.json();
+  }
+
+  public async getRecentCustomers(context: WebPartContext): Promise<ICustomer[]> {
+    const client = await this.ensureClient(context);
+    const response: HttpClientResponse = await client.get(
+      `${this.apiBaseUrl}/customers`,
+      AadHttpClient.configurations.v1
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to get recent customers: ${response.statusText}`);
+    }
+
+    return await response.json();
+  }
+}

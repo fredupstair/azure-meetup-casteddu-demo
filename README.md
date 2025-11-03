@@ -1,73 +1,303 @@
-# azure-meetup-casteddu-demo
+# Azure Meetup Casteddu - SPFx + Azure Demo
 
-## Summary
+Demo completa di integrazione SharePoint Framework (SPFx) con Azure e Microsoft Graph.
 
-Short summary on functionality and used technologies.
+## 📖 Panoramica
 
-[picture of the solution in action, if possible]
+Questa soluzione dimostra l'integrazione tra:
+- **SharePoint Framework (SPFx)**: Webpart di produttività
+- **Microsoft Graph API**: Calendario ed email
+- **Azure Backend**: API Management + Functions + Table Storage
 
-## Used SharePoint Framework Version
+## 🎯 Funzionalità della Dashboard
 
-![version](https://img.shields.io/badge/version-1.21.1-green.svg)
+La webpart di produttività mostra 4 sezioni tramite tab:
 
-## Applies to
+1. **📅 Calendario**: Prossimi appuntamenti (Microsoft Graph)
+2. **📧 Email**: Messaggi non letti (Microsoft Graph)
+3. **📊 Statistiche Produzione**: KPI di produttività (Azure)
+4. **👥 Clienti**: Ultimi 3 clienti (Azure)
 
-- [SharePoint Framework](https://aka.ms/spfx)
-- [Microsoft 365 tenant](https://docs.microsoft.com/en-us/sharepoint/dev/spfx/set-up-your-developer-tenant)
+## 🏗️ Architettura
 
-> Get your own free development tenant by subscribing to [Microsoft 365 developer program](http://aka.ms/o365devprogram)
+```
+┌─────────────────────────────────────────────────────┐
+│         SharePoint Online / Teams                   │
+│                                                      │
+│  ┌──────────────────────────────────────────────┐  │
+│  │      SPFx Productivity WebPart               │  │
+│  │      (AadHttpClient + Azure AD Token)        │  │
+│  │                                               │  │
+│  │  ┌────────┐  ┌────────┐  ┌────────────────┐ │  │
+│  │  │Calendar│  │ Email  │  │ Production     │ │  │
+│  │  │  Tab   │  │  Tab   │  │ Data Tabs      │ │  │
+│  │  └────────┘  └────────┘  └────────────────┘ │  │
+│  └──────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────┘
+           │                           │
+           │ Microsoft Graph           │ HTTPS + Bearer Token
+           │ (Azure AD)                │ (Azure AD JWT)
+           ▼                           ▼
+┌──────────────────┐      ┌────────────────────────┐
+│ Microsoft Graph  │      │ Azure API Management   │
+│    API           │      │                        │
+│                  │      │  validate-jwt policy   │
+│ - Calendar       │      │  ✓ Audience            │
+│ - Mail           │      │  ✓ Issuer              │
+└──────────────────┘      │  ✓ Signature           │
+                          │                        │
+                          │  /productivity/stats   │
+                          │  /productivity/items   │
+                          │  /productivity/customers│
+                          └────────────────────────┘
+                                     │
+                                     ▼
+                          ┌─────────────────────────┐
+                          │  Azure Functions        │
+                          │  (Node.js/TypeScript)   │
+                          │                         │
+                          │  - GetProductionStats   │
+                          │  - GetProductionItems   │
+                          │  - GetRecentCustomers   │
+                          └─────────────────────────┘
+                                     │
+                                     ▼
+                          ┌─────────────────────────┐
+                          │  Azure Table Storage    │
+                          │                         │
+                          │  - ProductionStats      │
+                          │  - ProductionItems      │
+                          │  - Customers            │
+                          └─────────────────────────┘
+```
 
-## Prerequisites
+## 📁 Struttura del Repository
 
-> Any special pre-requisites?
+```
+azure-meetup-casteddu-demo/
+├── azure/                          # Backend Azure
+│   ├── README.md                  # Setup e deployment backend
+│   ├── docs/                      # Documentazione
+│   │   ├── AUTHENTICATION-FLOW.md # Flusso autenticazione completo
+│   │   ├── SPFX-INTEGRATION.md    # Guida integrazione SPFx
+│   │   └── QUICK-REFERENCE.md     # Guida rapida setup
+│   ├── infrastructure/
+│   │   └── main.bicep             # IaC template
+│   ├── functions/                 # Azure Functions
+│   │   ├── GetProductionStats/
+│   │   ├── GetProductionItems/
+│   │   └── GetRecentCustomers/
+│   ├── scripts/
+│   │   ├── deploy.ps1
+│   │   └── seed-data.ps1
+│   └── config/
+│       └── aad-app-config.json    # Azure AD App config
+│
+└── sp/                            # SPFx WebPart
+    ├── README.md                  # Sviluppo webpart
+    ├── src/
+    │   ├── webparts/
+    │   │   └── myProductivity/
+    │   └── services/              # Graph & API services
+    ├── config/
+    └── package.json
+```
 
-## Solution
+## 🚀 Quick Start
 
-| Solution    | Author(s)                                               |
-| ----------- | ------------------------------------------------------- |
-| folder name | Author details (name, company, twitter alias with link) |
+### 1. Setup Azure AD App Registration
 
-## Version history
+```powershell
+cd azure/scripts
+./setup-aad-app.ps1 -AppName "Productivity API"
+```
 
-| Version | Date             | Comments        |
-| ------- | ---------------- | --------------- |
-| 1.1     | March 10, 2021   | Update comment  |
-| 1.0     | January 29, 2021 | Initial release |
+Salva il **Client ID** dall'output!
 
-## Disclaimer
+### 2. Deploy Azure Backend
 
-**THIS CODE IS PROVIDED _AS IS_ WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.**
+```powershell
+./deploy.ps1 -ResourceGroupName "rg-meetup-casteddu" -ApiClientId "YOUR-CLIENT-ID-HERE"
+```
+
+Salva l'output con API Gateway URL e Resource URI.
+
+### 3. Seed Demo Data
+
+```powershell
+./seed-data.ps1 -StorageAccountName "prodcasteddustdemo" -ResourceGroupName "rg-meetup-casteddu"
+```
+
+### 4. Configura SPFx (TODO)
+
+Vedi la guida completa: [azure/SPFX-INTEGRATION.md](./azure/SPFX-INTEGRATION.md)
+
+```powershell
+cd sp
+npm install
+gulp serve
+```
+
+## 📋 Prerequisiti
+
+### Azure
+- Azure Subscription attiva
+- Azure CLI (`az login`)
+- Azure Functions Core Tools v4
+- Node.js 20.x
+
+### SPFx
+- Node.js 18.x (per SPFx)
+- SharePoint Online tenant
+- Microsoft 365 Developer account
+
+## 🔑 Configurazione
+
+### Azure AD Authentication
+
+L'API è protetta tramite Azure AD JWT validation. SPFx usa `AadHttpClient`:
+
+```typescript
+// In SPFx WebPart
+const client = await this.context.aadHttpClientFactory
+  .getClient('api://YOUR-CLIENT-ID');
+
+const response = await client.get(
+  'https://prodcasteddu-apim-demo.azure-api.net/productivity/stats',
+  AadHttpClient.configurations.v1
+);
+```
+
+### SPFx Configuration
+
+Aggiungi in `config/package-solution.json`:
+
+```json
+{
+  "solution": {
+    "webApiPermissionRequests": [
+      {
+        "resource": "Productivity API",
+        "scope": "user_impersonation"
+      },
+      {
+        "resource": "Microsoft Graph",
+        "scope": "Calendars.Read"
+      },
+      {
+        "resource": "Microsoft Graph",
+        "scope": "Mail.Read"
+      }
+    ]
+  }
+}
+```
+
+Dopo il deploy, approva i permessi in **SharePoint Admin Center** → **API Access**.
+Guida completa: [azure/docs/SPFX-INTEGRATION.md](./azure/docs/SPFX-INTEGRATION.md)
+
+## 📚 Documentazione
+
+- **[Quick Reference Guide](./azure/docs/QUICK-REFERENCE.md)** - 🚀 Guida rapida setup
+- **[Azure Backend](./azure/README.md)** - Setup e deployment backend Azure
+- [SPFx Integration Guide](./azure/docs/SPFX-INTEGRATION.md) - Integrazione SPFx con Azure AD
+- [Authentication Flow](./azure/docs/AUTHENTICATION-FLOW.md) - Flusso completo autenticazione
+- [SPFx WebPart](./sp/README.md) - Sviluppo webpartd) - Flusso completo autenticazione
+- [SPFx WebPart README](./sp/README.md) - Sviluppo webpart
+
+## 🎓 Demo Flow
+
+1. **Mostra l'architettura** (questo README)
+2. **Backend Azure**:
+   - Mostra le Azure Functions nel portale
+   - Testa le API in APIM
+   - Visualizza i dati in Table Storage
+3. **SPFx WebPart**:
+   - Mostra il codice TypeScript/React
+   - Spiega l'integrazione con Graph
+   - Live demo della dashboard in SharePoint
+
+## 🧪 Testing
+
+### Test Azure Functions Localmente
+
+```powershell
+cd azure/functions
+npm start
+```
+
+Test endpoint:
+```
+curl http://localhost:7071/api/GetProductionStats
+```
+
+### Test SPFx Localmente
+
+```powershell
+cd sp
+gulp serve --nobrowser
+```
+
+## 🐛 Troubleshooting
+
+### Azure Functions non rispondono
+- Verifica che il deployment sia completato
+- Controlla i log in Application Insights
+- Testa localmente prima
+
+### CORS errors
+- Verifica la configurazione APIM
+- Aggiungi il dominio SharePoint agli allowed origins
+
+### Graph API 403 Forbidden
+- Verifica i permessi API in SharePoint Admin Center
+- Controlla che l'utente abbia accesso ai dati
+
+### Azure AD 401 Unauthorized
+- Verifica che l'API permission sia stata approvata
+- Controlla che il Resource URI sia corretto (`api://{client-id}`)
+- Usa https://jwt.ms per decodificare il token e verificare claims
+
+## 🛠️ Tech Stack
+
+| Componente | Tecnologia |
+|-----------|-----------|
+| Frontend | SPFx, React, Fluent UI |
+| Backend | Azure Functions (Node.js/TypeScript) |
+| API Gateway | Azure API Management |
+| Authentication | Azure AD (JWT validation) |
+| Database | Azure Table Storage |
+| IaC | Bicep |
+| Monitoring | Application Insights |
+
+## 📊 Costi Stimati
+
+Usando tier Consumption/serverless:
+- Azure Functions: ~€0 (free tier copre la demo)
+- APIM Consumption: ~€3-5/mese
+- Storage Account: ~€0.50/mese
+- Application Insights: ~€2/mese
+
+**Totale stimato**: ~€5-10/mese per la demo
+
+## 🗑️ Cleanup
+
+```powershell
+az group delete --name "rg-meetup-casteddu" --yes
+```
+
+## 🤝 Contributing
+
+Questa è una demo per Azure Meetup Casteddu.
+
+## 📄 License
+
+MIT License - Usa pure per le tue demo!
+
+## 👨‍💻 Autore
+
+Demo preparata per **Azure Meetup Casteddu**
 
 ---
 
-## Minimal Path to Awesome
-
-- Clone this repository
-- Ensure that you are at the solution folder
-- in the command-line run:
-  - **npm install**
-  - **gulp serve**
-
-> Include any additional steps as needed.
-
-## Features
-
-Description of the extension that expands upon high-level summary above.
-
-This extension illustrates the following concepts:
-
-- topic 1
-- topic 2
-- topic 3
-
-> Notice that better pictures and documentation will increase the sample usage and the value you are providing for others. Thanks for your submissions advance.
-
-> Share your web part with others through Microsoft 365 Patterns and Practices program to get visibility and exposure. More details on the community, open-source projects and other activities from http://aka.ms/m365pnp.
-
-## References
-
-- [Getting started with SharePoint Framework](https://docs.microsoft.com/en-us/sharepoint/dev/spfx/set-up-your-developer-tenant)
-- [Building for Microsoft teams](https://docs.microsoft.com/en-us/sharepoint/dev/spfx/build-for-teams-overview)
-- [Use Microsoft Graph in your solution](https://docs.microsoft.com/en-us/sharepoint/dev/spfx/web-parts/get-started/using-microsoft-graph-apis)
-- [Publish SharePoint Framework applications to the Marketplace](https://docs.microsoft.com/en-us/sharepoint/dev/spfx/publish-to-marketplace-overview)
-- [Microsoft 365 Patterns and Practices](https://aka.ms/m365pnp) - Guidance, tooling, samples and open-source controls for your Microsoft 365 development
+**Buona demo! 🚀**

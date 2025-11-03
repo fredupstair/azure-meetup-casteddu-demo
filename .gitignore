@@ -1,34 +1,39 @@
-# Logs
-logs
+# Ignore Azure Functions build output
+azure/functions/dist/
+azure/functions/node_modules/
+azure/functions/.vscode/
+azure/functions/.funcignore
+
+# Azure Functions local settings (contains secrets)
+azure/functions/local.settings.json
+
+# Azure AD configuration (contains client IDs)
+azure/config/aad-app-config.json
+
+# Build outputs
 *.log
-npm-debug.log*
+*.tgz
 
-# Dependency directories
-node_modules
-
-# Build generated files
-dist
-lib
-release
-solution
-temp
-*.sppkg
-.heft
-
-# Coverage directory used by tools like istanbul
-coverage
-
-# OSX
+# OS files
 .DS_Store
+Thumbs.db
 
-# Visual Studio files
-.ntvs_analysis.dat
-.vs
-bin
-obj
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# Resx Generated Code
-*.resx.ts
+# SPFx
+sp/node_modules/
+sp/dist/
+sp/temp/
+sp/lib/
+sp/coverage/
+sp/.vscode/
 
-# Styles Generated Code
-*.scss.ts
+# SharePoint Framework
+*.sppkg
+*.log
+.yo-rc.json

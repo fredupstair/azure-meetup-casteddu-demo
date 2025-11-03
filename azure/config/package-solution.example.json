@@ -1,0 +1,54 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "my-productivity-client-side-solution",
+    "id": "YOUR-SOLUTION-ID-HERE",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "Azure Meetup Casteddu",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.18.2"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "Productivity Dashboard integrating SPFx with Azure and Microsoft Graph"
+      },
+      "longDescription": {
+        "default": "A productivity dashboard that shows calendar events, unread emails, and production data from Azure backend"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "my-productivity-client-side-solution Feature",
+        "description": "The feature that activates elements of the my-productivity-client-side-solution solution.",
+        "id": "YOUR-FEATURE-ID-HERE",
+        "version": "1.0.0.0"
+      }
+    ],
+    "webApiPermissionRequests": [
+      {
+        "resource": "Productivity API",
+        "scope": "user_impersonation"
+      },
+      {
+        "resource": "Microsoft Graph",
+        "scope": "Calendars.Read"
+      },
+      {
+        "resource": "Microsoft Graph",
+        "scope": "Mail.Read"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/my-productivity.sppkg"
+  }
+}

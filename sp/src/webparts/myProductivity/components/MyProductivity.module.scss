@@ -1,0 +1,54 @@
+@import '~@fluentui/react/dist/sass/References.scss';
+
+.myProductivity {
+  overflow: hidden;
+  padding: 0;
+  color: "[theme:bodyText, default: #323130]";
+  color: var(--bodyText);
+  background-color: $ms-color-white;
+  border-radius: 4px;
+  box-shadow: 0 1.6px 3.6px 0 rgba(0,0,0,0.132), 0 0.3px 0.9px 0 rgba(0,0,0,0.108);
+  
+  &.teams {
+    font-family: $ms-font-family-fallbacks;
+  }
+}
+
+.header {
+  padding: 20px 24px;
+  background: linear-gradient(135deg, $ms-color-themePrimary 0%, $ms-color-themeDark 100%);
+  color: $ms-color-white;
+  
+  h2 {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+    font-weight: 600;
+  }
+}
+
+.userInfo {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.pivot {
+  padding: 0 24px;
+  
+  :global {
+    .ms-Pivot-link {
+      font-size: 14px;
+      font-weight: 600;
+      
+      &:hover {
+        background-color: $ms-color-neutralLighter;
+      }
+      
+      &.is-selected {
+        &::before {
+          height: 3px;
+          background-color: $ms-color-themePrimary;
+        }
+      }
+    }
+  }
+}
