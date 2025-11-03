@@ -32,7 +32,7 @@ cd azure/scripts
 ### 3️⃣ Seed Dati Demo
 
 ```powershell
-./seed-data.ps1 -StorageAccountName "prodcasteddustdemo" -ResourceGroupName "rg-meetup-casteddu"
+./seed-data.ps1 -StorageAccountName "prodcasteddudemost" -ResourceGroupName "rg-meetup-casteddu"
 ```
 
 ---

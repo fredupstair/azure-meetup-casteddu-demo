@@ -102,7 +102,7 @@ Lo script esegue:
 ### 3. Seed Demo Data
 
 ```powershell
-./seed-data.ps1 -StorageAccountName "prodcasteddustdemo" -ResourceGroupName "rg-meetup-casteddu"
+./seed-data.ps1 -StorageAccountName "prodcasteddudemost" -ResourceGroupName "rg-meetup-casteddu"
 ```
 
 Popola le tabelle con dati fittizi per **più utenti di test** (3 utenti di default).
@@ -224,7 +224,7 @@ In `config/package-solution.json`:
 Dopo il deploy della SPFx solution, approva i permessi in:
 **SharePoint Admin Center** → **Advanced** → **API Access**
 
-Vedi [SPFX-INTEGRATION.md](./SPFX-INTEGRATION.md) per la guida completa.
+Vedi [SPFX-INTEGRATION.md](../docs/SPFX-INTEGRATION.md) per la guida completa.
 
 ### Per test con Postman/curl
 
@@ -321,9 +321,9 @@ az group delete --name "rg-meetup-casteddu" --yes --no-wait
 
 ## 📚 Documentazione Avanzata
 
-- [AUTHENTICATION-FLOW.md](./AUTHENTICATION-FLOW.md) - Flusso completo di autenticazione SharePoint → APIM → Functions
-- [SPFX-INTEGRATION.md](./SPFX-INTEGRATION.md) - Guida step-by-step integrazione SPFx
-- [QUICK-REFERENCE.md](./QUICK-REFERENCE.md) - Quick reference per comandi comuni
+- [AUTHENTICATION-FLOW.md](../docs/AUTHENTICATION-FLOW.md) - Flusso completo di autenticazione SharePoint → APIM → Functions
+- [SPFX-INTEGRATION.md](../docs/SPFX-INTEGRATION.md) - Guida step-by-step integrazione SPFx
+- [QUICK-REFERENCE.md](../docs/QUICK-REFERENCE.md) - Quick reference per comandi comuni
 
 ## 🔐 Sicurezza
 

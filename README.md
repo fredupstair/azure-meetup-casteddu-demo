@@ -11,12 +11,13 @@ Questa soluzione dimostra l'integrazione tra:
 
 ## 🎯 Funzionalità della Dashboard
 
-La webpart di produttività mostra 4 sezioni tramite tab:
+La webpart di produttività mostra 5 sezioni tramite tab:
 
 1. **📅 Calendario**: Prossimi appuntamenti (Microsoft Graph)
 2. **📧 Email**: Messaggi non letti (Microsoft Graph)
 3. **📊 Statistiche Produzione**: KPI di produttività (Azure)
-4. **👥 Clienti**: Ultimi 3 clienti (Azure)
+4. **📦 Pezzi Prodotti**: Ultimi pezzi prodotti (Azure)
+5. **👥 Clienti**: Clienti recenti (Azure)
 
 ## 🏗️ Architettura
 
@@ -55,7 +56,7 @@ La webpart di produttività mostra 4 sezioni tramite tab:
                           ┌─────────────────────────┐
                           │  Azure Functions        │
                           │  (Node.js/TypeScript)   │
-                          │                         │
+                          │  + User OID Filtering   │
                           │  - GetProductionStats   │
                           │  - GetProductionItems   │
                           │  - GetRecentCustomers   │
@@ -125,12 +126,12 @@ Salva l'output con API Gateway URL e Resource URI.
 ### 3. Seed Demo Data
 
 ```powershell
-./seed-data.ps1 -StorageAccountName "prodcasteddustdemo" -ResourceGroupName "rg-meetup-casteddu"
+./seed-data.ps1 -StorageAccountName "prodcasteddudemost" -ResourceGroupName "rg-meetup-casteddu"
 ```
 
 ### 4. Configura SPFx (TODO)
 
-Vedi la guida completa: [azure/SPFX-INTEGRATION.md](./azure/SPFX-INTEGRATION.md)
+Vedi la guida completa: [docs/SPFX-INTEGRATION.md](./docs/SPFX-INTEGRATION.md)
 
 ```powershell
 cd sp
@@ -202,7 +203,6 @@ Guida completa: [docs/SPFX-INTEGRATION.md](./docs/SPFX-INTEGRATION.md)
 - **[Azure Backend](./azure/README.md)** - Setup e deployment backend Azure
 - [SPFx Integration Guide](./docs/SPFX-INTEGRATION.md) - Integrazione SPFx con Azure AD
 - [Authentication Flow](./docs/AUTHENTICATION-FLOW.md) - Flusso completo autenticazione
-- [SPFx WebPart](./sp/README.md) - Sviluppo webpartd) - Flusso completo autenticazione
 - [SPFx WebPart README](./sp/README.md) - Sviluppo webpart
 
 ## 🎓 Demo Flow
