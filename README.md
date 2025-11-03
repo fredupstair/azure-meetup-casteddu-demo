@@ -75,12 +75,12 @@ La webpart di produttività mostra 4 sezioni tramite tab:
 
 ```
 azure-meetup-casteddu-demo/
+├── docs/                           # Documentazione
+│   ├── AUTHENTICATION-FLOW.md     # Flusso autenticazione completo
+│   ├── SPFX-INTEGRATION.md        # Guida integrazione SPFx
+│   └── QUICK-REFERENCE.md         # Guida rapida setup
 ├── azure/                          # Backend Azure
 │   ├── README.md                  # Setup e deployment backend
-│   ├── docs/                      # Documentazione
-│   │   ├── AUTHENTICATION-FLOW.md # Flusso autenticazione completo
-│   │   ├── SPFX-INTEGRATION.md    # Guida integrazione SPFx
-│   │   └── QUICK-REFERENCE.md     # Guida rapida setup
 │   ├── infrastructure/
 │   │   └── main.bicep             # IaC template
 │   ├── functions/                 # Azure Functions
@@ -194,14 +194,14 @@ Aggiungi in `config/package-solution.json`:
 ```
 
 Dopo il deploy, approva i permessi in **SharePoint Admin Center** → **API Access**.
-Guida completa: [azure/docs/SPFX-INTEGRATION.md](./azure/docs/SPFX-INTEGRATION.md)
+Guida completa: [docs/SPFX-INTEGRATION.md](./docs/SPFX-INTEGRATION.md)
 
 ## 📚 Documentazione
 
-- **[Quick Reference Guide](./azure/docs/QUICK-REFERENCE.md)** - 🚀 Guida rapida setup
+- **[Quick Reference Guide](./docs/QUICK-REFERENCE.md)** - 🚀 Guida rapida setup
 - **[Azure Backend](./azure/README.md)** - Setup e deployment backend Azure
-- [SPFx Integration Guide](./azure/docs/SPFX-INTEGRATION.md) - Integrazione SPFx con Azure AD
-- [Authentication Flow](./azure/docs/AUTHENTICATION-FLOW.md) - Flusso completo autenticazione
+- [SPFx Integration Guide](./docs/SPFX-INTEGRATION.md) - Integrazione SPFx con Azure AD
+- [Authentication Flow](./docs/AUTHENTICATION-FLOW.md) - Flusso completo autenticazione
 - [SPFx WebPart](./sp/README.md) - Sviluppo webpartd) - Flusso completo autenticazione
 - [SPFx WebPart README](./sp/README.md) - Sviluppo webpart
 

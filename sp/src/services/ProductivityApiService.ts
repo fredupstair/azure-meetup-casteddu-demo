@@ -42,12 +42,21 @@ export class ProductivityApiService {
 
   public async getProductionStats(context: WebPartContext): Promise<IProductionStats> {
     const client = await this.ensureClient(context);
+    
+    console.log('[ProductivityApiService] Getting stats from:', `${this.apiBaseUrl}/stats`);
+    console.log('[ProductivityApiService] Resource URI:', this.resourceUri);
+    
     const response: HttpClientResponse = await client.get(
       `${this.apiBaseUrl}/stats`,
       AadHttpClient.configurations.v1
     );
 
+    console.log('[ProductivityApiService] Response status:', response.status);
+    console.log('[ProductivityApiService] Response headers:', response.headers);
+
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[ProductivityApiService] Error response:', errorText);
       throw new Error(`Failed to get production stats: ${response.statusText}`);
     }
 
@@ -65,7 +74,8 @@ export class ProductivityApiService {
       throw new Error(`Failed to get production items: ${response.statusText}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    return data.value || data; // Handle both {value: [...]} and [...] formats
   }
 
   public async getRecentCustomers(context: WebPartContext): Promise<ICustomer[]> {
@@ -79,6 +89,7 @@ export class ProductivityApiService {
       throw new Error(`Failed to get recent customers: ${response.statusText}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    return data.value || data; // Handle both {value: [...]} and [...] formats
   }
 }

@@ -46,14 +46,17 @@ export default class MyProductivityWebPart extends BaseClientSideWebPart<IMyProd
   }
 
   protected onInit(): Promise<void> {
-    // Initialize services
+    // Initialize Graph service
     this._graphService = new GraphService(this.context);
     
-    // Default values for Azure API (can be configured via web part properties)
+    // Initialize Productivity API service with Azure APIM configuration
+    // These values can be overridden via web part properties
     const apiBaseUrl = this.properties.apiBaseUrl || 'https://prodcasteddu-apim-demo.azure-api.net/productivity';
     const apiResourceUri = this.properties.apiResourceUri || 'api://4543e176-c20a-4904-bed3-49463d757c4f';
     
     this._productivityService = new ProductivityApiService(apiBaseUrl, apiResourceUri);
+    
+    console.log('[MyProductivity] Initialized with:', { apiBaseUrl, apiResourceUri });
 
     return this._getEnvironmentMessage().then(message => {
       this._environmentMessage = message;

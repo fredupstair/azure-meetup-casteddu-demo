@@ -15,7 +15,11 @@
       {
         "resource": "Microsoft Graph",
         "scope": "Mail.Read"
-      } 
+      },
+      {
+        "resource": "Productivity API",
+        "scope": "user_impersonation"
+      }
     ],
     "developer": {
       "name": "",

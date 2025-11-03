@@ -123,7 +123,15 @@ try {
     Remove-Item $tempFile3 -ErrorAction SilentlyContinue
 }
 
-# 6. Get Tenant ID
+# 6. Create Service Principal (Enterprise Application)
+Write-Host "`nCreating Service Principal..." -ForegroundColor Yellow
+
+az ad sp create --id $appId | Out-Null
+
+Write-Host "Service Principal created successfully!" -ForegroundColor Green
+Write-Host "This allows SharePoint to discover the API for permission requests" -ForegroundColor Gray
+
+# 7. Get Tenant ID
 $tenantId = az account show --query tenantId -o tsv
 
 # Output configuration
@@ -134,6 +142,7 @@ Write-Host "Application (Client) ID: $appId" -ForegroundColor Cyan
 Write-Host "Tenant ID: $tenantId" -ForegroundColor Cyan
 Write-Host "Application ID URI: api://$appId" -ForegroundColor Cyan
 Write-Host "Scope: api://$appId/user_impersonation" -ForegroundColor Cyan
+Write-Host "Service Principal: Created ✓" -ForegroundColor Cyan
 Write-Host "------------------------------------------------------" -ForegroundColor Gray
 
 Write-Host "`nNext Steps:" -ForegroundColor Yellow
