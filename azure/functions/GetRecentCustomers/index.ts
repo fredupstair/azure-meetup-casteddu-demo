@@ -19,19 +19,47 @@ export async function GetRecentCustomers(request: HttpRequest, context: Invocati
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-User-Id'
         };
 
         if (request.method === 'OPTIONS') {
             return { status: 204, headers };
         }
 
+        // Get user ID from APIM header
+        const userId = request.headers.get('x-user-id') || 'anonymous';
+        context.log(`User ID: ${userId}`);
+
         const connectionString = process.env.AzureWebJobsStorage;
         const tableClient = TableClient.fromConnectionString(connectionString, "Customers");
 
+        // If anonymous, return all customers from all users
+        if (userId === 'anonymous') {
+            context.log('[DEBUG] Anonymous user - returning all customers');
+            const allCustomers: Customer[] = [];
+            const iterator = tableClient.listEntities<Customer>();
+            for await (const entity of iterator) {
+                allCustomers.push({
+                    partitionKey: entity.partitionKey,
+                    rowKey: entity.rowKey,
+                    customerCode: entity.customerCode as string,
+                    customerName: entity.customerName as string,
+                    lastOrderDate: entity.lastOrderDate as string,
+                    totalOrders: entity.totalOrders as number,
+                    location: entity.location as string
+                });
+            }
+            return {
+                status: 200,
+                headers,
+                jsonBody: { allUsers: allCustomers, message: 'Showing all users data (anonymous mode)', count: allCustomers.length }
+            };
+        }
+
         const customers: Customer[] = [];
+        const partitionKey = `${userId}_Customers`;
         const iterator = tableClient.listEntities<Customer>({
-            queryOptions: { filter: "PartitionKey eq 'CUSTOMER'" }
+            queryOptions: { filter: `PartitionKey eq '${partitionKey}'` }
         });
 
         for await (const entity of iterator) {
@@ -44,30 +72,15 @@ export async function GetRecentCustomers(request: HttpRequest, context: Invocati
                 totalOrders: entity.totalOrders as number,
                 location: entity.location as string
             });
-            
-            if (customers.length >= 3) break;
         }
 
         // Sort by last order date
         customers.sort((a, b) => new Date(b.lastOrderDate).getTime() - new Date(a.lastOrderDate).getTime());
 
-        // If no customers, return mock data
-        if (customers.length === 0) {
-            return {
-                status: 200,
-                headers,
-                jsonBody: [
-                    { customerCode: "CUST-001", customerName: "Acme Corporation", lastOrderDate: new Date().toISOString(), totalOrders: 47, location: "Milano" },
-                    { customerCode: "CUST-002", customerName: "TechStart SRL", lastOrderDate: new Date(Date.now() - 86400000).toISOString(), totalOrders: 23, location: "Roma" },
-                    { customerCode: "CUST-003", customerName: "InnovaSolutions SpA", lastOrderDate: new Date(Date.now() - 172800000).toISOString(), totalOrders: 65, location: "Cagliari" }
-                ]
-            };
-        }
-
         return {
             status: 200,
             headers,
-            jsonBody: customers.slice(0, 3)
+            jsonBody: customers
         };
     } catch (error) {
         context.error('Error in GetRecentCustomers:', error);

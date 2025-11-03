@@ -239,13 +239,13 @@ resource getCustomersOperationPolicy 'Microsoft.ApiManagement/service/apis/opera
   }
 }
 
-// API Management - API Policy (JWT Validation + CORS + Backend)
+// API Management - API Policy (JWT Validation + CORS + Backend + User Context)
 resource apimApiPolicy 'Microsoft.ApiManagement/service/apis/policies@2023-05-01-preview' = {
   parent: apimApi
   name: 'policy'
   properties: {
     format: 'rawxml'
-    value: '<policies><inbound><base /><cors allow-credentials="true"><allowed-origins><origin>${sharePointTenantUrl}</origin></allowed-origins><allowed-methods><method>GET</method><method>POST</method><method>OPTIONS</method></allowed-methods><allowed-headers><header>*</header></allowed-headers><expose-headers><header>*</header></expose-headers></cors><validate-jwt header-name="Authorization" failed-validation-httpcode="401" failed-validation-error-message="Unauthorized. Access token is missing or invalid."><openid-config url="https://login.microsoftonline.com/${tenantId}/.well-known/openid-configuration" /><audiences><audience>api://${apiClientId}</audience></audiences><issuers><issuer>https://sts.windows.net/${tenantId}/</issuer></issuers></validate-jwt><set-backend-service backend-id="productivity-backend" /></inbound><backend><base /></backend><outbound><base /></outbound><on-error><base /></on-error></policies>'
+    value: '<policies><inbound><base /><cors allow-credentials="true"><allowed-origins><origin>${sharePointTenantUrl}</origin></allowed-origins><allowed-methods><method>GET</method><method>POST</method><method>OPTIONS</method></allowed-methods><allowed-headers><header>*</header></allowed-headers><expose-headers><header>*</header></expose-headers></cors><validate-jwt header-name="Authorization" failed-validation-httpcode="401" failed-validation-error-message="Unauthorized. Access token is missing or invalid."><openid-config url="https://login.microsoftonline.com/${tenantId}/.well-known/openid-configuration" /><audiences><audience>api://${apiClientId}</audience></audiences><issuers><issuer>https://sts.windows.net/${tenantId}/</issuer></issuers></validate-jwt><set-header name="X-User-Id" exists-action="override"><value>@{var jwt = context.Request.Headers.GetValueOrDefault("Authorization","").AsJwt(); return jwt != null ? jwt.Claims.GetValueOrDefault("oid", "anonymous") : "anonymous";}</value></set-header><set-backend-service backend-id="productivity-backend" /></inbound><backend><base /></backend><outbound><base /></outbound><on-error><base /></on-error></policies>'
   }
 }
 

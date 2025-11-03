@@ -83,7 +83,10 @@ export const ProductionItemsTab: React.FC<IProductionItemsTabProps> = ({ context
       setError('');
       const data = await productivityService.getProductionItems(context);
       console.log('[ProductionItemsTab] Items loaded:', data);
-      setItems(data);
+      
+      // Handle both response formats: {allUsers: [...], message: '...'} or [...]
+      const items = (data as any).allUsers || data;
+      setItems(Array.isArray(items) ? items : []);
     } catch (err) {
       console.error('[ProductionItemsTab] Error loading items:', err);
       setError(err.message || 'Errore nel caricamento degli articoli di produzione');

@@ -68,7 +68,10 @@ export const CustomersTab: React.FC<ICustomersTabProps> = ({ context, productivi
       setError('');
       const data = await productivityService.getRecentCustomers(context);
       console.log('[CustomersTab] Customers loaded:', data);
-      setCustomers(data);
+      
+      // Handle both response formats: {allUsers: [...], message: '...'} or [...]
+      const customers = (data as any).allUsers || data;
+      setCustomers(Array.isArray(customers) ? customers : []);
     } catch (err) {
       console.error('[CustomersTab] Error loading customers:', err);
       setError(err.message || 'Errore nel caricamento dei clienti');

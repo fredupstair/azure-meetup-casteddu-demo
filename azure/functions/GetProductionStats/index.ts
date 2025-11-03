@@ -10,7 +10,7 @@ export async function GetProductionStats(request: HttpRequest, context: Invocati
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-User-Id'
         };
 
         // Handle OPTIONS preflight
@@ -18,12 +18,38 @@ export async function GetProductionStats(request: HttpRequest, context: Invocati
             return { status: 204, headers };
         }
 
+        // Get user ID from APIM header
+        const userId = request.headers.get('x-user-id') || 'anonymous';
+        context.log(`User ID: ${userId}`);
+
         const connectionString = process.env.AzureWebJobsStorage;
         const tableClient = TableClient.fromConnectionString(connectionString, "ProductionStats");
 
-        // Get today's stats
+        // If anonymous, return all stats from all users
+        if (userId === 'anonymous') {
+            context.log('[DEBUG] Anonymous user - returning all stats');
+            const allStats: any[] = [];
+            const iterator = tableClient.listEntities();
+            for await (const entity of iterator) {
+                allStats.push({
+                    partitionKey: entity.partitionKey,
+                    rowKey: entity.rowKey,
+                    totalPiecesProduced: entity.totalPiecesProduced,
+                    averageProductionSpeed: entity.averageProductionSpeed,
+                    efficiency: entity.efficiency,
+                    lastUpdated: entity.timestamp
+                });
+            }
+            return {
+                status: 200,
+                headers,
+                jsonBody: { allUsers: allStats, message: 'Showing all users data (anonymous mode)', count: allStats.length }
+            };
+        }
+
+        // Get today's stats for this specific user
         const today = new Date().toISOString().split('T')[0];
-        const partitionKey = "STATS";
+        const partitionKey = `${userId}_Stats`;
         
         try {
             const entity = await tableClient.getEntity(partitionKey, today);
@@ -40,15 +66,16 @@ export async function GetProductionStats(request: HttpRequest, context: Invocati
                 }
             };
         } catch (error) {
-            // If no data for today, return mock data
+            // No data found - return empty stats
+            context.log('[DEBUG] No stats found for user:', userId);
             return {
                 status: 200,
                 headers,
                 jsonBody: {
                     date: today,
-                    totalPiecesProduced: 1247,
-                    averageProductionSpeed: 42.5,
-                    efficiency: 94.2,
+                    totalPiecesProduced: 0,
+                    averageProductionSpeed: 0,
+                    efficiency: 0,
                     lastUpdated: new Date().toISOString()
                 }
             };

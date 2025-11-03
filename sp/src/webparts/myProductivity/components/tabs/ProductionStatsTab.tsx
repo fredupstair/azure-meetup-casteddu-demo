@@ -23,7 +23,10 @@ export const ProductionStatsTab: React.FC<IProductionStatsTabProps> = ({ context
     setError(null);
     try {
       const data = await productivityService.getProductionStats(context);
-      setStats(data);
+      
+      // Handle both response formats: {allUsers: [...], message: '...'} or single object
+      const stats = (data as any).allUsers ? (data as any).allUsers[0] : data;
+      setStats(stats || null);
     } catch (err) {
       setError(err.message || 'Errore durante il caricamento delle statistiche');
       console.error('Error loading production stats:', err);

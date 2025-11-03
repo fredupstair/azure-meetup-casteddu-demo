@@ -9,16 +9,42 @@ async function GetRecentCustomers(request, context) {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-User-Id'
         };
         if (request.method === 'OPTIONS') {
             return { status: 204, headers };
         }
+        // Get user ID from APIM header
+        const userId = request.headers.get('x-user-id') || 'anonymous';
+        context.log(`User ID: ${userId}`);
         const connectionString = process.env.AzureWebJobsStorage;
         const tableClient = data_tables_1.TableClient.fromConnectionString(connectionString, "Customers");
+        // If anonymous, return all customers from all users
+        if (userId === 'anonymous') {
+            context.log('[DEBUG] Anonymous user - returning all customers');
+            const allCustomers = [];
+            const iterator = tableClient.listEntities();
+            for await (const entity of iterator) {
+                allCustomers.push({
+                    partitionKey: entity.partitionKey,
+                    rowKey: entity.rowKey,
+                    customerCode: entity.customerCode,
+                    customerName: entity.customerName,
+                    lastOrderDate: entity.lastOrderDate,
+                    totalOrders: entity.totalOrders,
+                    location: entity.location
+                });
+            }
+            return {
+                status: 200,
+                headers,
+                jsonBody: { allUsers: allCustomers, message: 'Showing all users data (anonymous mode)', count: allCustomers.length }
+            };
+        }
         const customers = [];
+        const partitionKey = `${userId}_Customers`;
         const iterator = tableClient.listEntities({
-            queryOptions: { filter: "PartitionKey eq 'CUSTOMER'" }
+            queryOptions: { filter: `PartitionKey eq '${partitionKey}'` }
         });
         for await (const entity of iterator) {
             customers.push({
@@ -30,27 +56,13 @@ async function GetRecentCustomers(request, context) {
                 totalOrders: entity.totalOrders,
                 location: entity.location
             });
-            if (customers.length >= 3)
-                break;
         }
         // Sort by last order date
         customers.sort((a, b) => new Date(b.lastOrderDate).getTime() - new Date(a.lastOrderDate).getTime());
-        // If no customers, return mock data
-        if (customers.length === 0) {
-            return {
-                status: 200,
-                headers,
-                jsonBody: [
-                    { customerCode: "CUST-001", customerName: "Acme Corporation", lastOrderDate: new Date().toISOString(), totalOrders: 47, location: "Milano" },
-                    { customerCode: "CUST-002", customerName: "TechStart SRL", lastOrderDate: new Date(Date.now() - 86400000).toISOString(), totalOrders: 23, location: "Roma" },
-                    { customerCode: "CUST-003", customerName: "InnovaSolutions SpA", lastOrderDate: new Date(Date.now() - 172800000).toISOString(), totalOrders: 65, location: "Cagliari" }
-                ]
-            };
-        }
         return {
             status: 200,
             headers,
-            jsonBody: customers.slice(0, 3)
+            jsonBody: customers
         };
     }
     catch (error) {

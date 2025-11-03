@@ -23,7 +23,7 @@ try {
     npm install
 
     Write-Host "`nBuilding TypeScript..." -ForegroundColor Yellow
-    npx tsc
+    npm run build
 
     # Verify
     $jsFiles = Get-ChildItem -Recurse -Include "index.js" | Where-Object { $_.Directory.Name -match "^Get" }

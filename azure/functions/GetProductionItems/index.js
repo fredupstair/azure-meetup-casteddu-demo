@@ -9,17 +9,44 @@ async function GetProductionItems(request, context) {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-User-Id'
         };
         if (request.method === 'OPTIONS') {
             return { status: 204, headers };
         }
+        // Get user ID from APIM header
+        const userId = request.headers.get('x-user-id') || 'anonymous';
+        context.log(`[DEBUG] User ID from header: ${userId}`);
+        context.log(`[DEBUG] All headers:`, JSON.stringify([...request.headers]));
         const connectionString = process.env.AzureWebJobsStorage;
         const tableClient = data_tables_1.TableClient.fromConnectionString(connectionString, "ProductionItems");
-        // Get last 5 items
+        // If anonymous, return all items from all users
+        if (userId === 'anonymous') {
+            context.log('[DEBUG] Anonymous user - returning all items');
+            const allItems = [];
+            const iterator = tableClient.listEntities();
+            for await (const entity of iterator) {
+                allItems.push({
+                    partitionKey: entity.partitionKey,
+                    rowKey: entity.rowKey,
+                    itemCode: entity.itemCode,
+                    productName: entity.productName,
+                    quantity: entity.quantity,
+                    productionDate: entity.productionDate,
+                    status: entity.status
+                });
+            }
+            return {
+                status: 200,
+                headers,
+                jsonBody: { allUsers: allItems, message: 'Showing all users data (anonymous mode)', count: allItems.length }
+            };
+        }
+        // Get last 5 items for this specific user
         const items = [];
+        const partitionKey = `${userId}_Items`;
         const iterator = tableClient.listEntities({
-            queryOptions: { filter: "PartitionKey eq 'ITEM'" }
+            queryOptions: { filter: `PartitionKey eq '${partitionKey}'` }
         });
         for await (const entity of iterator) {
             items.push({
@@ -31,29 +58,13 @@ async function GetProductionItems(request, context) {
                 productionDate: entity.productionDate,
                 status: entity.status
             });
-            if (items.length >= 5)
-                break;
         }
         // Sort by production date (most recent first)
         items.sort((a, b) => new Date(b.productionDate).getTime() - new Date(a.productionDate).getTime());
-        // If no items, return mock data
-        if (items.length === 0) {
-            return {
-                status: 200,
-                headers,
-                jsonBody: [
-                    { itemCode: "PRD-2024-1150", productName: "Widget A", quantity: 500, productionDate: new Date().toISOString(), status: "Completed" },
-                    { itemCode: "PRD-2024-1149", productName: "Gadget B", quantity: 350, productionDate: new Date(Date.now() - 3600000).toISOString(), status: "Completed" },
-                    { itemCode: "PRD-2024-1148", productName: "Component C", quantity: 800, productionDate: new Date(Date.now() - 7200000).toISOString(), status: "Completed" },
-                    { itemCode: "PRD-2024-1147", productName: "Part D", quantity: 250, productionDate: new Date(Date.now() - 10800000).toISOString(), status: "In Progress" },
-                    { itemCode: "PRD-2024-1146", productName: "Assembly E", quantity: 150, productionDate: new Date(Date.now() - 14400000).toISOString(), status: "Completed" }
-                ]
-            };
-        }
         return {
             status: 200,
             headers,
-            jsonBody: items.slice(0, 5)
+            jsonBody: items
         };
     }
     catch (error) {

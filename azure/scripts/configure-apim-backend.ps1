@@ -69,7 +69,7 @@ if ($LASTEXITCODE -ne 0) {
 
 Remove-Item $tempFile -ErrorAction SilentlyContinue
 
-Write-Host "✓ APIM backend configured successfully" -ForegroundColor Green
+Write-Host "APIM backend configured successfully" -ForegroundColor Green
 Write-Host ""
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host "  Configuration Complete!" -ForegroundColor Green

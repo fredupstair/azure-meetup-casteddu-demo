@@ -8,13 +8,15 @@ Backend Azure per la demo di integrazione SPFx con Azure e Microsoft Graph.
 ┌──────────────┐          ┌──────────────┐          ┌──────────────┐
 │  SharePoint  │ ────────>│     APIM     │ ────────>│   Azure      │
 │   SPFx WP    │  JWT     │  (Gateway)   │  Func    │  Functions   │
-│              │  Token   │              │  Key     │              │
+│              │  Token   │  + User ID   │  Key     │   (filter)   │
 └──────────────┘          └──────────────┘          └──────────────┘
                                 │                           │
-                                │                           ▼
-                          JWT Validation            ┌──────────────┐
-                          CORS Policy               │    Table     │
-                          Function Key Injection    │   Storage    │
+                          JWT Validation                    ▼
+                          Extract User OID           ┌──────────────┐
+                          X-User-Id Header           │    Table     │
+                          CORS Policy                │   Storage    │
+                          Function Key Injection     │ (partitioned │
+                                                     │  by userId)  │
                                                      └──────────────┘
 ```
 
@@ -22,23 +24,29 @@ Backend Azure per la demo di integrazione SPFx con Azure e Microsoft Graph.
 
 - **Azure API Management**: Gateway unificato con autenticazione Azure AD JWT
   - Valida token JWT dall'utente SharePoint
+  - **Estrae User OID dal JWT e passa come header X-User-Id** 🆕
   - Aggiunge automaticamente function key alle richieste backend
   - Policy CORS per SharePoint
   - URL rewrite per mapping endpoint
   
 - **Azure Functions v4**: 3 funzioni serverless (Node.js 20 / TypeScript)
-  - `GetProductionStats`: Statistiche di produttività
-  - `GetProductionItems`: Ultimi 5 pezzi prodotti
-  - `GetRecentCustomers`: 3 clienti più recenti
+  - `GetProductionStats`: Statistiche di produttività **filtrate per utente** 🆕
+  - `GetProductionItems`: Ultimi 5 pezzi prodotti **filtrati per utente** 🆕
+  - `GetRecentCustomers`: 3 clienti più recenti **filtrati per utente** 🆕
   - **Auth Level**: `function` - richiedono function key (passato da APIM)
+  - **Leggono X-User-Id header e filtrano dati per userId** 🆕
   
-- **Azure Table Storage**: Database per dati fittizi di produzione
+- **Azure Table Storage**: Database con **partitioning multi-utente** 🆕
+  - **PartitionKey schema**: `{userId}_Stats`, `{userId}_Items`, `{userId}_Customers`
+  - **Isolamento dati**: Ogni utente vede solo i propri dati
+  - Query performanti su singola partizione
 
 - **Application Insights**: Monitoring e logging end-to-end
 
-**Flusso di sicurezza (doppio layer):**
+**Flusso di sicurezza e data isolation:**
 1. **Layer 1 - Autenticazione utente**: SPFx → APIM con JWT (verifica identità utente)
 2. **Layer 2 - Autorizzazione backend**: APIM → Functions con function key (solo APIM può chiamare)
+3. **Layer 3 - Isolamento dati**: Functions filtrano Table Storage per User OID 🆕
 
 ## 📋 Prerequisiti
 
@@ -97,7 +105,14 @@ Lo script esegue:
 ./seed-data.ps1 -StorageAccountName "prodcasteddustdemo" -ResourceGroupName "rg-meetup-casteddu"
 ```
 
-Popola le tabelle con dati fittizi per la demo.
+Popola le tabelle con dati fittizi per **più utenti di test** (3 utenti di default).
+
+**Schema multi-utente:**
+- Crea dati per utente corrente + 2 test users
+- PartitionKey: `{userId}_Stats`, `{userId}_Items`, `{userId}_Customers`
+- Ogni utente ha dati randomizzati diversi
+
+> **📝 Nota**: Lo script usa OID reali. Per aggiungere altri utenti, modifica l'array `$users` nello script con OID da Azure AD (ottienibili con `az ad user show --id user@domain.com --query id -o tsv`)
 
 ## 🔧 Sviluppo Locale
 
@@ -312,13 +327,14 @@ az group delete --name "rg-meetup-casteddu" --yes --no-wait
 
 ## 🔐 Sicurezza
 
-L'architettura implementa **doppio layer di sicurezza**:
+L'architettura implementa **triplo layer di sicurezza con isolamento dati multi-utente**:
 
 ### Layer 1: Autenticazione Utente (Azure AD JWT)
 
 **Gestito da APIM tramite validate-jwt policy:**
 - ✅ JWT token validation in API Management
 - ✅ Token issuer e audience verification
+- ✅ **Estrazione User OID dal claim JWT** 🆕
 - ✅ Nessuna API key esposta nel client SPFx
 - ✅ User context preservation
 - ✅ Token short-lived (1 ora tipicamente)
@@ -330,7 +346,18 @@ L'architettura implementa **doppio layer di sicurezza**:
   <audiences>
     <audience>api://{client-id}</audience>
   </audiences>
+  <issuers>
+    <issuer>https://sts.windows.net/{tenant}/</issuer>
+  </issuers>
 </validate-jwt>
+
+<!-- Extract User OID from JWT and pass to backend -->
+<set-header name="X-User-Id" exists-action="override">
+  <value>@{
+    var jwt = context.Request.Headers.GetValueOrDefault("Authorization","").AsJwt();
+    return jwt != null ? jwt.Claims.GetValueOrDefault("oid", "anonymous") : "anonymous";
+  }</value>
+</set-header>
 ```
 
 ### Layer 2: Autorizzazione Backend (Function Key)
@@ -353,17 +380,60 @@ L'architettura implementa **doppio layer di sicurezza**:
 }
 ```
 
+### Layer 3: Isolamento Dati Multi-Utente 🆕
+
+**Gestito da Azure Functions con Table Storage partitioning:**
+- ✅ Functions leggono `X-User-Id` header da APIM
+- ✅ Query filtrate per PartitionKey = `{userId}_{EntityType}`
+- ✅ **Ogni utente vede SOLO i propri dati**
+- ✅ Impossibile accedere a dati di altri utenti (query cross-partition bloccata)
+- ✅ Performance ottimizzate (query su singola partizione)
+
+**Implementazione Functions:**
+```typescript
+// Extract user ID from APIM header
+const userId = request.headers.get('x-user-id') || 'anonymous';
+const partitionKey = `${userId}_Stats`; // or _Items, _Customers
+
+// Query only this user's data
+const entity = await tableClient.getEntity(partitionKey, rowKey);
+```
+
+**Schema Table Storage:**
+```
+ProductionStats table:
+├─ 83834e24-..._Stats (utente 1)
+│  └─ 2025-01-15 (stats del giorno)
+├─ 00000000-..._Stats (utente 2)
+│  └─ 2025-01-15
+└─ ...
+
+ProductionItems table:
+├─ 83834e24-..._Items (utente 1)
+│  ├─ item-001
+│  ├─ item-002
+│  └─ ...
+└─ 00000000-..._Items (utente 2)
+   └─ ...
+```
+
 ### Flusso di Sicurezza Completo
 
 ```
 1. Utente SharePoint → APIM
    ├─ ❌ Senza JWT → 401 Unauthorized
-   └─ ✅ Con JWT valido → Continua
+   └─ ✅ Con JWT valido → Continua + Estrae OID
 
 2. APIM → Azure Functions
-   ├─ APIM aggiunge ?code={function-key}
+   ├─ Aggiunge ?code={function-key}
+   ├─ Aggiunge X-User-Id: {oid} header 🆕
    ├─ ❌ Senza function key → 401 Unauthorized  
    └─ ✅ Con function key → Esegue funzione
+
+3. Azure Functions → Table Storage 🆕
+   ├─ Legge userId da X-User-Id header
+   ├─ Query: PartitionKey = '{userId}_Stats'
+   └─ ✅ Ritorna SOLO dati dell'utente autenticato
 ```
 
 ### API Management Policies Aggiuntive
@@ -371,6 +441,7 @@ L'architettura implementa **doppio layer di sicurezza**:
 - ✅ HTTPS obbligatorio
 - ✅ Rate limiting (configurabile)
 - ✅ URL rewrite per mapping pulito degli endpoint
+- ✅ **User context propagation tramite custom headers** 🆕
 
 ### Azure Functions
 - ✅ TLS 1.2+ obbligatorio
@@ -378,6 +449,8 @@ L'architettura implementa **doppio layer di sicurezza**:
 - ✅ Managed Identity ready
 - ✅ Application Insights logging
 - ✅ Function keys rotation supportata
+- ✅ **User-based data filtering** 🆕
+- ✅ **CORS headers includono X-User-Id** 🆕
 
 ### Protezione contro accesso diretto alle Functions
 
