@@ -18,6 +18,14 @@
         "--remote-debugging-port=9222",
         "-incognito"
       ]
+    },
+    {
+      "name": "Attach to Node Functions",
+      "type": "node",
+      "request": "attach",
+      "restart": true,
+      "port": 9229,
+      "preLaunchTask": "func: host start"
     }
   ]
 }

@@ -21,7 +21,7 @@ azure/config/aad-app-config.json
 Thumbs.db
 
 # IDE
-.vscode/
+
 .idea/
 *.swp
 *.swo
