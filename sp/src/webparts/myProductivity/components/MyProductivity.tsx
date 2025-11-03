@@ -6,6 +6,7 @@ import { Pivot, PivotItem } from '@fluentui/react';
 import { CalendarTab } from './tabs/CalendarTab';
 import { EmailTab } from './tabs/EmailTab';
 import { ProductionStatsTab } from './tabs/ProductionStatsTab';
+import { ProductionItemsTab } from './tabs/ProductionItemsTab';
 import { CustomersTab } from './tabs/CustomersTab';
 
 export default class MyProductivity extends React.Component<IMyProductivityProps> {
@@ -48,6 +49,17 @@ export default class MyProductivity extends React.Component<IMyProductivityProps
             itemIcon="BarChartVertical"
           >
             <ProductionStatsTab 
+              context={context} 
+              productivityService={productivityService} 
+            />
+          </PivotItem>
+
+          <PivotItem 
+            headerText="📦 Articoli Produzione" 
+            itemKey="productionItems"
+            itemIcon="ProductList"
+          >
+            <ProductionItemsTab 
               context={context} 
               productivityService={productivityService} 
             />

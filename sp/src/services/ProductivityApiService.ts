@@ -42,21 +42,12 @@ export class ProductivityApiService {
 
   public async getProductionStats(context: WebPartContext): Promise<IProductionStats> {
     const client = await this.ensureClient(context);
-    
-    console.log('[ProductivityApiService] Getting stats from:', `${this.apiBaseUrl}/stats`);
-    console.log('[ProductivityApiService] Resource URI:', this.resourceUri);
-    
     const response: HttpClientResponse = await client.get(
       `${this.apiBaseUrl}/stats`,
       AadHttpClient.configurations.v1
     );
 
-    console.log('[ProductivityApiService] Response status:', response.status);
-    console.log('[ProductivityApiService] Response headers:', response.headers);
-
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[ProductivityApiService] Error response:', errorText);
       throw new Error(`Failed to get production stats: ${response.statusText}`);
     }
 

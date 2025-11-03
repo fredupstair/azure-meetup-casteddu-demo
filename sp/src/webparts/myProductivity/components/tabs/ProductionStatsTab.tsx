@@ -51,39 +51,26 @@ export const ProductionStatsTab: React.FC<IProductionStatsTabProps> = ({ context
           <MessageBar messageBarType={MessageBarType.success}>
             ✅ Dati caricati correttamente da APIM
           </MessageBar>
-          
-          <div className={styles.debugOutput}>
-            <h4>🔍 Debug - Dati ricevuti dall'API:</h4>
-            <pre style={{ 
-              background: '#f5f5f5', 
-              padding: '15px', 
-              borderRadius: '4px',
-              overflow: 'auto',
-              fontSize: '12px'
-            }}>
-              {JSON.stringify(stats, null, 2)}
-            </pre>
-          </div>
 
           <div className={styles.statsGrid}>
             <div className={styles.statCard}>
-              <div className={styles.statLabel}>Data</div>
-              <div className={styles.statValue}>{stats.date}</div>
+              <div className={styles.statLabel}>📅 Data</div>
+              <div className={styles.statValue}>{new Date(stats.date).toLocaleDateString('it-IT')}</div>
             </div>
             <div className={styles.statCard}>
-              <div className={styles.statLabel}>Pezzi Prodotti</div>
-              <div className={styles.statValue}>{stats.totalPiecesProduced}</div>
+              <div className={styles.statLabel}>🔢 Pezzi Prodotti</div>
+              <div className={styles.statValue}>{stats.totalPiecesProduced.toLocaleString()}</div>
             </div>
             <div className={styles.statCard}>
-              <div className={styles.statLabel}>Velocità Media</div>
+              <div className={styles.statLabel}>⚡ Velocità Media</div>
               <div className={styles.statValue}>{stats.averageProductionSpeed} pz/h</div>
             </div>
             <div className={styles.statCard}>
-              <div className={styles.statLabel}>Efficienza</div>
+              <div className={styles.statLabel}>📈 Efficienza</div>
               <div className={styles.statValue}>{stats.efficiency}%</div>
             </div>
             <div className={styles.statCard}>
-              <div className={styles.statLabel}>Ultimo Aggiornamento</div>
+              <div className={styles.statLabel}>🕐 Ultimo Aggiornamento</div>
               <div className={styles.statValue}>{new Date(stats.lastUpdated).toLocaleString('it-IT')}</div>
             </div>
           </div>
