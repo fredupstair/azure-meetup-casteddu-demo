@@ -152,6 +152,12 @@ gulp serve
 - SharePoint Online tenant
 - Microsoft 365 Developer account
 
+> **📝 Nota**: Questo repository contiene valori placeholder. Prima di utilizzarlo:
+> - Sostituisci `YOUR-TENANT` con il nome del tuo tenant SharePoint
+> - Sostituisci `YOUR-CLIENT-ID-HERE` con il Client ID della tua App Registration Azure AD
+> - Sostituisci `YOUR-TENANT-ID-HERE` con il tuo Tenant ID Azure AD
+> - Il file `azure/config/aad-app-config.json` verrà generato automaticamente durante il setup
+
 ## 🔑 Configurazione
 
 ### Azure AD Authentication

@@ -55,6 +55,10 @@ Backend Azure per la demo di integrazione SPFx con Azure e Microsoft Graph.
 - Node.js 20.x
 - PowerShell 7+ (raccomandato)
 
+> **📝 Nota per chi clona questo repository**: 
+> - Il file `config/aad-app-config.json` contiene placeholder e verrà rigenerato durante il setup
+> - Nel file `infrastructure/main.bicep`, sostituisci `YOUR-TENANT.sharepoint.com` con il tuo tenant SharePoint prima del deployment
+
 ## 🚀 Deployment
 
 ### 1. Setup Azure AD App Registration

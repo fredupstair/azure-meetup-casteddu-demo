@@ -1,5 +1,10 @@
 # Quick Reference - Azure AD Setup
 
+> **📝 Nota**: Questa guida usa placeholder generici. Sostituisci:
+> - `abc123-def456-...` con il tuo effettivo Client ID
+> - `YOUR-CLIENT-ID` con il tuo Client ID
+> - `YOUR-TENANT` con il nome del tuo tenant SharePoint
+
 ## 📋 Passi Rapidi
 
 ### 1️⃣ Setup Azure AD App (Una volta sola)

@@ -44,6 +44,9 @@ Short summary on functionality and used technologies.
 
 - Clone this repository
 - Ensure that you are at the solution folder
+- **Update configuration files with your values:**
+  - In `config/serve.json`: Replace `YOUR-TENANT` and `YOUR-SITE` with your SharePoint tenant and site names
+  - See main [README](../README.md) for Azure setup instructions
 - in the command-line run:
   - **npm install**
   - **gulp serve**

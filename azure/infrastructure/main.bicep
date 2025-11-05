@@ -14,7 +14,7 @@ param tenantId string = tenant().tenantId
 param apiClientId string
 
 @description('SharePoint tenant URL for CORS (e.g., https://contoso.sharepoint.com)')
-param sharePointTenantUrl string = 'https://federicoporceddumvp.sharepoint.com'
+param sharePointTenantUrl string = 'https://YOUR-TENANT.sharepoint.com'
 
 var functionAppName = '${baseName}-func-${environment}'
 var storageAccountName = toLower(replace('${baseName}${environment}st', '-', ''))
